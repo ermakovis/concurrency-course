@@ -1,7 +1,6 @@
 package course.concurrency.exams.auction;
 
 public class AuctionPessimistic implements Auction {
-
     private Notifier notifier;
 
     public AuctionPessimistic(Notifier notifier) {
@@ -10,7 +9,12 @@ public class AuctionPessimistic implements Auction {
 
     private Bid latestBid;
 
-    public boolean propose(Bid bid) {
+    public synchronized boolean propose(Bid bid) {
+        if (latestBid == null) {
+            latestBid = bid;
+            return true;
+        }
+
         if (bid.price > latestBid.price) {
             notifier.sendOutdatedMessage(latestBid);
             latestBid = bid;
