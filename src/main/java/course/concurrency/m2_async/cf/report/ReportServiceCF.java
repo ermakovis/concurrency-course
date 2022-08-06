@@ -10,9 +10,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 
 public class ReportServiceCF {
-    private ExecutorService executor = Executors.newCachedThreadPool();
 //    private ExecutorService executor = ForkJoinPool.commonPool();
-
+//    private ExecutorService executor = Executors.newCachedThreadPool();
+//    private ExecutorService executor = Executors.newSingleThreadExecutor();
+//    private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 2);
+//    private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+//    private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 3);
+    private ExecutorService executor = Executors.newFixedThreadPool(9);
+//    private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 3 * 10);
     private LoadGenerator loadGenerator = new LoadGenerator();
 
     public Others.Report getReport() {

@@ -8,15 +8,21 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ReportServiceTests {
 
 //    private ReportServiceExecutors reportService = new ReportServiceExecutors();
     private ReportServiceCF reportService = new ReportServiceCF();
-
+    private ReentrantLock lock = new ReentrantLock();
+    @Test
+    void someRandomTest() {
+        lock.unlock();
+    }
     @Test
     public void testMultipleTasks() throws InterruptedException {
-        int poolSize = Runtime.getRuntime().availableProcessors() * 5;
+        int poolSize = Runtime.getRuntime().availableProcessors() * 3;
         int iterations = 5;
 
         CountDownLatch latch = new CountDownLatch(1);
@@ -29,7 +35,7 @@ public class ReportServiceTests {
                 } catch (InterruptedException ignored) {}
                 for (int it = 0; it < iterations; it++) {
                     reportService.getReport();
-                }
+                    AtomicReference<String> ref = new AtomicReference<>();}
             });
         }
 
