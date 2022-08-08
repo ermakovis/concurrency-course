@@ -14,7 +14,7 @@ public class AuctionPessimistic implements Auction {
 
         synchronized (this) {
             oldBid = latestBid;
-            if (bid.price <= latestBid.price) {
+            if (bid.price <= oldBid.price) {
                 return false;
             }
             latestBid = bid;
