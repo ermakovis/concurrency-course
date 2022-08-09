@@ -10,7 +10,11 @@ public class AuctionPessimistic implements Auction {
     private Bid latestBid = new Bid(Long.MIN_VALUE, 0L, 0L);
 
     public boolean propose(Bid bid) {
-        Bid oldBid;
+        Bid oldBid = latestBid;
+
+        if (bid.price <= oldBid.price) {
+            return false;
+        }
 
         synchronized (this) {
             oldBid = latestBid;
