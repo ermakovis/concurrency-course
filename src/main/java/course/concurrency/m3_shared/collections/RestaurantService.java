@@ -1,11 +1,11 @@
 package course.concurrency.m3_shared.collections;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class RestaurantService {
-
-    private Object stat;
+    private ConcurrentHashMap<String, Integer> stat = new ConcurrentHashMap<>();
     private Restaurant mockRestaurant = new Restaurant("A");
 
     public Restaurant getByName(String restaurantName) {
@@ -14,11 +14,19 @@ public class RestaurantService {
     }
 
     public void addToStat(String restaurantName) {
-        // Ð²Ð°Ñˆ ÐºÐ¾Ð´
+        if (stat.putIfAbsent(restaurantName, 1) == null) {
+            return;
+        }
+
+        Integer old;
+        do {
+            old = stat.get(restaurantName);
+        } while (!stat.replace(restaurantName, old, old + 1));
     }
 
     public Set<String> printStat() {
-        // Ð²Ð°Ñˆ ÐºÐ¾Ð´
-        return new HashSet<>();
+        return stat.entrySet().stream()
+                .map(entry -> String.format("%s - %d", entry.getKey(), entry.getValue()))
+                .collect(Collectors.toSet());
     }
 }
