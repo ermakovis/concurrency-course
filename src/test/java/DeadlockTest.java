@@ -1,7 +1,5 @@
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -27,8 +25,11 @@ public class DeadlockTest {
 
     }
 
-    @SneakyThrows
     void sleep(int millis) {
-        TimeUnit.MILLISECONDS.sleep(millis);
+        try {
+            TimeUnit.MILLISECONDS.sleep(millis);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

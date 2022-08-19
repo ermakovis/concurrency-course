@@ -14,14 +14,7 @@ public class RestaurantService {
     }
 
     public void addToStat(String restaurantName) {
-        if (stat.putIfAbsent(restaurantName, 1) == null) {
-            return;
-        }
-
-        Integer old;
-        do {
-            old = stat.get(restaurantName);
-        } while (!stat.replace(restaurantName, old, old + 1));
+        stat.compute(restaurantName, (k,v) -> v == null ? 1 : v + 1);
     }
 
     public Set<String> printStat() {
