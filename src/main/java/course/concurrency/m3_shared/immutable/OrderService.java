@@ -34,9 +34,9 @@ public class OrderService {
         tryToDeliver(orderId);
     }
 
-    private Order deliver(Order order) {
+    private void deliver(Order order) {
         /* ... */
-        return updateOrder(order.getId(), o -> o.withStatus(Order.Status.DELIVERED));
+        updateOrder(order.getId(), o -> o.withStatus(Order.Status.DELIVERED));
     }
 
     public boolean isDelivered(long orderId) {
@@ -56,9 +56,6 @@ public class OrderService {
         Order order = currentOrders.get(orderId);
         if (!order.checkStatus()) return;
 
-        Order deliveredOrder = deliver(order);
-        do {
-            order = currentOrders.get(orderId);
-        } while (currentOrders.replace(orderId, order, deliveredOrder));
+        deliver(order);
     }
 }
