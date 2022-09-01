@@ -1,0 +1,509 @@
+Index: src/main/java/course/concurrency/exams/auction/AuctionPessimistic.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/course/concurrency/exams/auction/AuctionPessimistic.java b/src/main/java/course/concurrency/exams/auction/AuctionPessimistic.java
+new file mode 100644
+--- /dev/null	(date 1656510533747)
++++ b/src/main/java/course/concurrency/exams/auction/AuctionPessimistic.java	(date 1656510533747)
+@@ -0,0 +1,25 @@
++package course.concurrency.exams.auction;
++
++public class AuctionPessimistic implements Auction {
++
++    private Notifier notifier;
++
++    public AuctionPessimistic(Notifier notifier) {
++        this.notifier = notifier;
++    }
++
++    private Bid latestBid;
++
++    public boolean propose(Bid bid) {
++        if (bid.price > latestBid.price) {
++            notifier.sendOutdatedMessage(latestBid);
++            latestBid = bid;
++            return true;
++        }
++        return false;
++    }
++
++    public Bid getLatestBid() {
++        return latestBid;
++    }
++}
+Index: src/main/java/course/concurrency/exams/auction/AuctionStoppableOptimistic.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/course/concurrency/exams/auction/AuctionStoppableOptimistic.java b/src/main/java/course/concurrency/exams/auction/AuctionStoppableOptimistic.java
+new file mode 100644
+--- /dev/null	(date 1656575914497)
++++ b/src/main/java/course/concurrency/exams/auction/AuctionStoppableOptimistic.java	(date 1656575914497)
+@@ -0,0 +1,30 @@
++package course.concurrency.exams.auction;
++
++public class AuctionStoppableOptimistic implements AuctionStoppable {
++
++    private Notifier notifier;
++
++    public AuctionStoppableOptimistic(Notifier notifier) {
++        this.notifier = notifier;
++    }
++
++    private Bid latestBid;
++
++    public boolean propose(Bid bid) {
++        if (bid.price > latestBid.price) {
++            notifier.sendOutdatedMessage(latestBid);
++            latestBid = bid;
++            return true;
++        }
++        return false;
++    }
++
++    public Bid getLatestBid() {
++        return latestBid;
++    }
++
++    public Bid stopAuction() {
++        // Ð²Ð°Ñˆ ÐºÐ¾Ð´
++        return latestBid;
++    }
++}
+Index: src/main/java/course/concurrency/exams/auction/AuctionStoppable.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/course/concurrency/exams/auction/AuctionStoppable.java b/src/main/java/course/concurrency/exams/auction/AuctionStoppable.java
+new file mode 100644
+--- /dev/null	(date 1656513164028)
++++ b/src/main/java/course/concurrency/exams/auction/AuctionStoppable.java	(date 1656513164028)
+@@ -0,0 +1,7 @@
++package course.concurrency.exams.auction;
++
++public interface AuctionStoppable extends Auction {
++
++    // stop auction and return latest bid
++    Bid stopAuction();
++}
+Index: src/main/java/course/concurrency/exams/auction/AuctionOptimistic.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/course/concurrency/exams/auction/AuctionOptimistic.java b/src/main/java/course/concurrency/exams/auction/AuctionOptimistic.java
+new file mode 100644
+--- /dev/null	(date 1656510446643)
++++ b/src/main/java/course/concurrency/exams/auction/AuctionOptimistic.java	(date 1656510446643)
+@@ -0,0 +1,25 @@
++package course.concurrency.exams.auction;
++
++public class AuctionOptimistic implements Auction {
++
++    private Notifier notifier;
++
++    public AuctionOptimistic(Notifier notifier) {
++        this.notifier = notifier;
++    }
++
++    private Bid latestBid;
++
++    public boolean propose(Bid bid) {
++        if (bid.price > latestBid.price) {
++            notifier.sendOutdatedMessage(latestBid);
++            latestBid = bid;
++            return true;
++        }
++        return false;
++    }
++
++    public Bid getLatestBid() {
++        return latestBid;
++    }
++}
+Index: src/main/java/course/concurrency/exams/auction/Auction.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/course/concurrency/exams/auction/Auction.java b/src/main/java/course/concurrency/exams/auction/Auction.java
+new file mode 100644
+--- /dev/null	(date 1654685658204)
++++ b/src/main/java/course/concurrency/exams/auction/Auction.java	(date 1654685658204)
+@@ -0,0 +1,8 @@
++package course.concurrency.exams.auction;
++
++public interface Auction {
++
++    boolean propose(Bid bid);
++
++    Bid getLatestBid();
++}
+Index: src/test/java/course/concurrency/exams/auction/AuctionTests.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/test/java/course/concurrency/exams/auction/AuctionTests.java b/src/test/java/course/concurrency/exams/auction/AuctionTests.java
+new file mode 100644
+--- /dev/null	(date 1656577945052)
++++ b/src/test/java/course/concurrency/exams/auction/AuctionTests.java	(date 1656577945052)
+@@ -0,0 +1,89 @@
++package course.concurrency.exams.auction;
++
++import org.junit.jupiter.api.*;
++
++import java.util.concurrent.*;
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++import static org.junit.jupiter.api.Assertions.assertNotEquals;
++
++public class AuctionTests {
++
++    private static final int TEST_COUNT = 10;
++    private static final ExecutionStatistics stat = new ExecutionStatistics();
++
++    private static final int iterations = 1_000_000;
++    private static final int poolSize = Runtime.getRuntime().availableProcessors();
++    private static final int bidCount = iterations * poolSize;
++
++    private ExecutorService executor;
++    private BlockingQueue<Long> priceQueue;
++    private long expectedPrice;
++    private Notifier notifier;
++
++    @BeforeEach
++    public void setup() {
++        notifier = new Notifier();
++
++        executor = Executors.newFixedThreadPool(poolSize);
++        priceQueue = new ArrayBlockingQueue<>(bidCount);
++        for (long i = 0; i < bidCount/3; i++) {
++            priceQueue.offer(i-1);
++            priceQueue.offer(i);
++            priceQueue.offer(i+1);
++        }
++        expectedPrice = bidCount/3;
++    }
++
++    @AfterEach
++    public void tearDown() {
++        notifier.shutdown();
++    }
++
++    @AfterAll
++    public static void printStat() {
++        stat.printStatistics();
++    }
++
++    @RepeatedTest(TEST_COUNT)
++    public void testOptimistic() throws InterruptedException {
++        AuctionOptimistic auction = new AuctionOptimistic(notifier);
++        testCorrectLatestBid(auction, "optimistic");
++    }
++
++    @RepeatedTest(TEST_COUNT)
++    public void testPessimistic() throws InterruptedException {
++        AuctionPessimistic auction = new AuctionPessimistic(notifier);
++        testCorrectLatestBid(auction, "pessimistic");
++    }
++
++    public void testCorrectLatestBid(Auction auction, String tag) throws InterruptedException {
++        CountDownLatch latch = new CountDownLatch(1);
++        for (int i = 0; i < poolSize; i++) {
++
++            executor.submit(() -> {
++                try {
++                    latch.await();
++                } catch (InterruptedException ignored) {}
++
++                for (int it = 0; it < iterations; it++) {
++                    long value = priceQueue.poll();
++                    Bid bid = new Bid(value, value, value);
++                    auction.propose(bid);
++                    if (it % 200 == 0) {
++                        auction.getLatestBid();
++                    }
++                }
++            });
++        }
++
++        long start = System.currentTimeMillis();
++        latch.countDown();
++        executor.shutdown();
++        executor.awaitTermination(20, TimeUnit.SECONDS);
++        long end = System.currentTimeMillis();
++
++        assertEquals(expectedPrice, auction.getLatestBid().price);
++        stat.addData(tag,end - start);
++    }
++}
+Index: src/test/java/course/concurrency/exams/auction/ExecutionStatistics.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/test/java/course/concurrency/exams/auction/ExecutionStatistics.java b/src/test/java/course/concurrency/exams/auction/ExecutionStatistics.java
+new file mode 100644
+--- /dev/null	(date 1656509285247)
++++ b/src/test/java/course/concurrency/exams/auction/ExecutionStatistics.java	(date 1656509285247)
+@@ -0,0 +1,27 @@
++package course.concurrency.exams.auction;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.util.LongSummaryStatistics;
++import java.util.concurrent.ConcurrentHashMap;
++
++import static java.util.stream.Collectors.summarizingLong;
++
++public class ExecutionStatistics {
++
++    private ConcurrentHashMap<String, List<Long>> stat = new ConcurrentHashMap<>();
++
++    public void addData(String method, Long duration) {
++        stat.putIfAbsent(method, new ArrayList<>());
++        stat.get(method).add(duration);
++    }
++
++    public void printStatistics() {
++        stat.forEach((k,v) -> System.out.println(k + ": " + listToStat(v)));
++    }
++
++    private String listToStat(List<Long> values) {
++        LongSummaryStatistics stat = values.stream().collect(summarizingLong(Long::valueOf));
++        return String.format("%.0f (%d-%d)", stat.getAverage(), stat.getMin(), stat.getMax());
++    }
++}
+Index: src/main/java/course/concurrency/exams/auction/AuctionStoppablePessimistic.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/course/concurrency/exams/auction/AuctionStoppablePessimistic.java b/src/main/java/course/concurrency/exams/auction/AuctionStoppablePessimistic.java
+new file mode 100644
+--- /dev/null	(date 1656575914367)
++++ b/src/main/java/course/concurrency/exams/auction/AuctionStoppablePessimistic.java	(date 1656575914367)
+@@ -0,0 +1,30 @@
++package course.concurrency.exams.auction;
++
++public class AuctionStoppablePessimistic implements AuctionStoppable {
++
++    private Notifier notifier;
++
++    public AuctionStoppablePessimistic(Notifier notifier) {
++        this.notifier = notifier;
++    }
++
++    private Bid latestBid;
++
++    public boolean propose(Bid bid) {
++        if (bid.price > latestBid.price) {
++            notifier.sendOutdatedMessage(latestBid);
++            latestBid = bid;
++            return true;
++        }
++        return false;
++    }
++
++    public Bid getLatestBid() {
++        return latestBid;
++    }
++
++    public Bid stopAuction() {
++        // Ð²Ð°Ñˆ ÐºÐ¾Ð´
++        return latestBid;
++    }
++}
+Index: src/main/java/course/concurrency/exams/auction/Notifier.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/course/concurrency/exams/auction/Notifier.java b/src/main/java/course/concurrency/exams/auction/Notifier.java
+new file mode 100644
+--- /dev/null	(date 1656575914410)
++++ b/src/main/java/course/concurrency/exams/auction/Notifier.java	(date 1656575914410)
+@@ -0,0 +1,16 @@
++package course.concurrency.exams.auction;
++
++public class Notifier {
++
++    public void sendOutdatedMessage(Bid bid) {
++        imitateSending();
++    }
++
++    private void imitateSending() {
++        try {
++            Thread.sleep(2000);
++        } catch (InterruptedException e) {}
++    }
++
++    public void shutdown() {}
++}
+Index: src/main/java/course/concurrency/exams/auction/Bid.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/course/concurrency/exams/auction/Bid.java b/src/main/java/course/concurrency/exams/auction/Bid.java
+new file mode 100644
+--- /dev/null	(date 1654685710360)
++++ b/src/main/java/course/concurrency/exams/auction/Bid.java	(date 1654685710360)
+@@ -0,0 +1,14 @@
++package course.concurrency.exams.auction;
++
++public class Bid {
++    // ÑƒÑ‡ÐµÐ±Ð½Ñ‹Ð¹ Ð¿Ñ€Ð¸Ð¼ÐµÑ€ Ð±ÐµÐ· private Ð¼Ð¾Ð´Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð¾Ñ€Ð¾Ð² Ð¸ get Ð¼ÐµÑ‚Ð¾Ð´Ð¾Ð²
++    Long id; // ID Ð·Ð°ÑÐ²ÐºÐ¸
++    Long participantId; // ID ÑƒÑ‡Ð°ÑÑ‚Ð½Ð¸ÐºÐ°
++    Long price; // Ð¿Ñ€ÐµÐ´Ð»Ð¾Ð¶ÐµÐ½Ð½Ð°Ñ Ñ†ÐµÐ½Ð°
++
++    public Bid(Long id, Long participantId, Long price) {
++        this.id = id;
++        this.participantId = participantId;
++        this.price = price;
++    }
++}
+Index: src/test/java/course/concurrency/exams/auction/AuctionStoppableTests.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/test/java/course/concurrency/exams/auction/AuctionStoppableTests.java b/src/test/java/course/concurrency/exams/auction/AuctionStoppableTests.java
+new file mode 100644
+--- /dev/null	(date 1656577791991)
++++ b/src/test/java/course/concurrency/exams/auction/AuctionStoppableTests.java	(date 1656577791991)
+@@ -0,0 +1,128 @@
++package course.concurrency.exams.auction;
++
++import org.junit.jupiter.api.*;
++
++import java.util.concurrent.*;
++import java.util.concurrent.atomic.AtomicReference;
++
++import static org.junit.jupiter.api.Assertions.*;
++
++public class AuctionStoppableTests {
++
++    private static final int TEST_COUNT = 10;
++    private static final ExecutionStatistics stat = new ExecutionStatistics();
++
++    private static final int iterations = 1_000_000;
++    private static final int poolSize = Runtime.getRuntime().availableProcessors();
++    private static final int bidCount = iterations * poolSize;
++
++    private ExecutorService executor;
++    private BlockingQueue<Long> priceQueue;
++    private long latestPrice;
++    private Notifier notifier;
++
++    @BeforeEach
++    public void setup() {
++        notifier = new Notifier();
++
++        executor = Executors.newFixedThreadPool(poolSize);
++        priceQueue = new ArrayBlockingQueue<>(bidCount);
++        for (long i = 0; i < bidCount/3; i++) {
++            priceQueue.offer(i-1);
++            priceQueue.offer(i);
++            priceQueue.offer(i+1);
++        }
++        latestPrice = bidCount/3;
++    }
++
++    @AfterEach
++    public void tearDown() {
++        notifier.shutdown();
++    }
++
++    @AfterAll
++    public static void printStat() {
++        stat.printStatistics();
++    }
++
++    @RepeatedTest(TEST_COUNT)
++    public void testPessimistic() throws InterruptedException {
++        AuctionStoppable pessimistic = new AuctionStoppablePessimistic(notifier);
++        testCorrectLatestBid(pessimistic, "pessimistic");
++    }
++
++    @RepeatedTest(TEST_COUNT)
++    public void testOptimistic() throws InterruptedException {
++        AuctionStoppable optimistic = new AuctionStoppableOptimistic(notifier);
++        testCorrectLatestBid(optimistic, "optimistic");
++    }
++
++    public void testCorrectLatestBid(AuctionStoppable auction, String tag) throws InterruptedException {
++        CountDownLatch latch = new CountDownLatch(1);
++
++        for (int i = 0; i < poolSize; i++) {
++            executor.submit(() -> {
++                try {
++                    latch.await();
++                } catch (InterruptedException ignored) {}
++
++                for (int it = 0; it < iterations; it++) {
++                    long value = priceQueue.poll();
++                    Bid bid = new Bid(value, value, value);
++                    auction.propose(bid);
++                }
++            });
++        }
++
++        long start = System.currentTimeMillis();
++        latch.countDown();
++        executor.shutdown();
++        executor.awaitTermination(10, TimeUnit.SECONDS);
++        long end = System.currentTimeMillis();
++
++        assertEquals(latestPrice, auction.getLatestBid().price);
++        stat.addData(tag,end - start);
++    }
++
++    @Test
++    public void testStoppedAuctionPessimistic() throws InterruptedException {
++        AuctionStoppable auction = new AuctionStoppablePessimistic(notifier);
++        testStoppedAuction(auction);
++    }
++
++    @Test
++    public void testStoppedAuctionOptimistic() throws InterruptedException {
++        AuctionStoppable auction = new AuctionStoppableOptimistic(notifier);
++        testStoppedAuction(auction);
++    }
++
++    public void testStoppedAuction(AuctionStoppable auction) throws InterruptedException {
++        CountDownLatch latch = new CountDownLatch(1);
++        int priceToStop = iterations;
++        AtomicReference<Bid> latestBidWhenStopped = new AtomicReference<>();
++
++        for (int i = 0; i < poolSize; i++) {
++            executor.submit(() -> {
++                try {
++                    latch.await();
++                } catch (InterruptedException ignored) {}
++
++                for (int it = 0; it < iterations; it++) {
++                    long value = priceQueue.poll();
++                    Bid bid = new Bid(value, value, value);
++                    auction.propose(bid);
++                    if (bid.price == priceToStop) {
++                        Bid latest = auction.stopAuction();
++                        latestBidWhenStopped.set(latest);
++                    }
++                }
++            });
++        }
++
++        latch.countDown();
++        executor.shutdown();
++        executor.awaitTermination(10, TimeUnit.SECONDS);
++
++        assertEquals(latestBidWhenStopped.get().price, auction.getLatestBid().price);
++    }
++}
