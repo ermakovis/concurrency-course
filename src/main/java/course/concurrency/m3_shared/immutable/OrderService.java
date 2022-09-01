@@ -50,10 +50,7 @@ public class OrderService {
     private void tryToDeliver(long orderId) {
         currentOrders.compute(orderId, (k,v) -> {
             Order order = currentOrders.get(orderId);
-            if (!order.checkStatus()) {
-                return order;
-            }
-            return order.withStatus(Order.Status.DELIVERED);
+            return order.checkStatus() ? order.withStatus(Order.Status.DELIVERED) : order;
         });
     }
 }
