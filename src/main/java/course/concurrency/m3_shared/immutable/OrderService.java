@@ -44,18 +44,16 @@ public class OrderService {
     }
 
     private Order updateOrder(long orderId, UnaryOperator<Order> updater) {
-        Order order = currentOrders.get(orderId);
-        Order updatedOrder = updater.apply(order);
-        do {
-            order = currentOrders.get(orderId);
-        } while (currentOrders.replace(orderId, order, updatedOrder));
-        return order;
+        return currentOrders.compute(orderId, (k,v) -> updater.apply(v));
     }
 
     private void tryToDeliver(long orderId) {
-        Order order = currentOrders.get(orderId);
-        if (!order.checkStatus()) return;
-
-        deliver(order);
+        currentOrders.compute(orderId, (k,v) -> {
+            Order order = currentOrders.get(orderId);
+            if (!order.checkStatus()) {
+                return order;
+            }
+            return order.withStatus(Order.Status.DELIVERED);
+        });
     }
 }
