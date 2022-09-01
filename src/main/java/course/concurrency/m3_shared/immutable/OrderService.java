@@ -25,18 +25,17 @@ public class OrderService {
     }
 
     public void updatePaymentInfo(long orderId, PaymentInfo paymentInfo) {
-        updateOrder(orderId, o -> o.withPaymentInfo(paymentInfo));
-        tryToDeliver(orderId);
+        Order order = updateOrder(orderId, o -> o.withPaymentInfo(paymentInfo));
+        deliver(order);
     }
 
     public void setPacked(long orderId) {
-        updateOrder(orderId, order -> order.withPacked(true));
-        tryToDeliver(orderId);
+        Order order = updateOrder(orderId, o -> o.withPacked(true));
+        deliver(order);
     }
 
     private void deliver(Order order) {
-        /* ... */
-        updateOrder(order.getId(), o -> o.withStatus(Order.Status.DELIVERED));
+        currentOrders.computeIfPresent(order.getId(), (k, v) -> v.checkStatus() ? v.withStatus(Order.Status.DELIVERED) : v);
     }
 
     public boolean isDelivered(long orderId) {
@@ -45,12 +44,5 @@ public class OrderService {
 
     private Order updateOrder(long orderId, UnaryOperator<Order> updater) {
         return currentOrders.compute(orderId, (k,v) -> updater.apply(v));
-    }
-
-    private void tryToDeliver(long orderId) {
-        currentOrders.compute(orderId, (k,v) -> {
-            Order order = currentOrders.get(orderId);
-            return order.checkStatus() ? order.withStatus(Order.Status.DELIVERED) : order;
-        });
     }
 }
