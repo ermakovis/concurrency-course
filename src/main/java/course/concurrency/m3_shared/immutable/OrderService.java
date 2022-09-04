@@ -26,16 +26,20 @@ public class OrderService {
 
     public void updatePaymentInfo(long orderId, PaymentInfo paymentInfo) {
         Order order = updateOrder(orderId, o -> o.withPaymentInfo(paymentInfo));
-        deliver(order);
+        if (order.checkStatus()) {
+            deliver(order);
+        }
     }
 
     public void setPacked(long orderId) {
         Order order = updateOrder(orderId, o -> o.withPacked(true));
-        deliver(order);
+        if (order.checkStatus()) {
+            deliver(order);
+        }
     }
 
     private void deliver(Order order) {
-        currentOrders.computeIfPresent(order.getId(), (k, v) -> v.checkStatus() ? v.withStatus(Order.Status.DELIVERED) : v);
+        updateOrder(order.getId(), o -> o.withStatus(Order.Status.DELIVERED));
     }
 
     public boolean isDelivered(long orderId) {
