@@ -78,20 +78,20 @@ public class MountTableRefresherService {
                 .collect(Collectors.toMap(
                         manager -> manager,
                         manager -> CompletableFuture.supplyAsync(manager::refresh)
-                                .orTimeout(cacheUpdateTimeout, TimeUnit.MILLISECONDS)
-                                .exceptionally(ex -> {
-                                        if (ex.getCause() instanceof TimeoutException) {
-                                            log("Not all router admins updated their cache");
-                                        }
-                                        if (ex.getCause() instanceof InterruptedException) {
-                                            log("Mount table cache refresher was interrupted.");
-                                        }
-                                        return false;
-                                    }),
+                                .orTimeout(cacheUpdateTimeout, TimeUnit.MILLISECONDS),
                         (e1, e2) -> e1)
                 );
 
         CompletableFuture.allOf(futuresMap.values().toArray(CompletableFuture[]::new))
+                .exceptionally(ex -> {
+                    if (ex.getCause() instanceof TimeoutException) {
+                        log("Not all router admins updated their cache");
+                    }
+                    if (ex.getCause() instanceof InterruptedException) {
+                        log("Mount table cache refresher was interrupted.");
+                    }
+                    return null;
+                })
                 .whenComplete((result, ex) -> {
                     logResult(futuresMap);
                 }).join();

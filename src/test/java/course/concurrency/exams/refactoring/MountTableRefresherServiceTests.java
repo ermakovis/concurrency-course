@@ -8,6 +8,7 @@ import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 import static java.util.stream.Collectors.toList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -145,6 +146,7 @@ public class MountTableRefresherServiceTests {
             mockedService.refresh();
 
             // then
+            verify(mockedService).log("Mount table cache refresher was interrupted.");
             verify(mockedService).log("Mount table entries cache refresh successCount=3,failureCount=1");
             verify(routerClientsCache, times(1)).invalidate(anyString());
         }
@@ -178,9 +180,38 @@ public class MountTableRefresherServiceTests {
             mockedService.refresh();
 
             // then
+            verify(mockedService).log("Not all router admins updated their cache");
             verify(mockedService).log("Mount table entries cache refresh successCount=3,failureCount=1");
             verify(routerClientsCache, times(1)).invalidate(anyString());
         }
     }
 
+    @Test
+    @DisplayName("Multiple tasks exceeds timeout")
+    public void shouldLogTimeoutExceptionOnce() {
+        try (MockedConstruction<Others.MountTableManager> mocked = Mockito.mockConstruction(Others.MountTableManager.class,
+                (mock, context) -> {
+                    when(mock.refresh()).thenAnswer(i -> {
+                        throw new TimeoutException();
+                    });
+                    when(mock.getAddress()).thenReturn((String) context.arguments().get(0));
+                })) {
+            MountTableRefresherService mockedService = Mockito.spy(service);
+            List<String> addresses = List.of("123", "local6", "local", "789");
+
+            List<Others.RouterState> states = addresses.stream()
+                    .map(Others.RouterState::new)
+                    .collect(toList());
+
+            when(routerStore.getCachedRecords()).thenReturn(states);
+
+            // when
+            mockedService.refresh();
+
+            // then
+            verify(mockedService).log("Not all router admins updated their cache");
+            verify(mockedService).log("Mount table entries cache refresh successCount=0,failureCount=4");
+            verify(routerClientsCache, times(4)).invalidate(anyString());
+        }
+    }
 }
